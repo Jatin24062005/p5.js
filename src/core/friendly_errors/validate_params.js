@@ -2,27 +2,27 @@
  * @for p5
  * @requires core
  */
-import p5 from "../main";
-import * as constants from "../constants";
-import { translator } from "../internationalization";
+import p5 from '../main';
+import * as constants from '../constants';
+import { translator } from '../internationalization';
 
-if (typeof IS_MINIFIED !== "undefined") {
+if (typeof IS_MINIFIED !== 'undefined') {
   p5._validateParameters = p5._clearValidateParamsCache = () => {};
 } else {
   // for parameter validation
-  const dataDoc = require("../../../docs/parameterData.json");
+  const dataDoc = require('../../../docs/parameterData.json');
   const arrDoc = JSON.parse(JSON.stringify(dataDoc));
 
   const docCache = {};
   const builtinTypes = new Set([
-    "null",
-    "number",
-    "string",
-    "boolean",
-    "constant",
-    "function",
-    "any",
-    "integer",
+    'null',
+    'number',
+    'string',
+    'boolean',
+    'constant',
+    'function',
+    'any',
+    'integer'
   ]);
 
   const basicTypes = {
@@ -30,7 +30,7 @@ if (typeof IS_MINIFIED !== "undefined") {
     boolean: true,
     string: true,
     function: true,
-    undefined: true,
+    undefined: true
   };
 
   // reverse map of all constants
@@ -50,14 +50,14 @@ if (typeof IS_MINIFIED !== "undefined") {
   // For speedup over many runs. funcSpecificConstructors[func] only has the
   // constructors for types which were seen earlier as args of "func"
   const funcSpecificConstructors = {};
-  window.addEventListener("load", () => {
+  window.addEventListener('load', () => {
     // Make a list of all p5 classes to be used for argument validation
     // This must be done only when everything has loaded otherwise we get
     // an empty array
     for (let key of Object.keys(p5)) {
       // Get a list of all constructors in p5. They are functions whose names
       // start with a capital letter
-      if (typeof p5[key] === "function" && key[0] !== key[0].toLowerCase()) {
+      if (typeof p5[key] === 'function' && key[0] !== key[0].toLowerCase()) {
         p5Constructors[key] = p5[key];
       }
     }
@@ -110,7 +110,7 @@ if (typeof IS_MINIFIED !== "undefined") {
       }
     } else if (value === null) {
       // typeof null -> "object". don't want that
-      obj = obj["null"] || (obj["null"] = {});
+      obj = obj['null'] || (obj['null'] = {});
     } else {
       // objects which are instances of p5 classes have nameless constructors.
       // native objects have a constructor named "Object". This check
@@ -183,7 +183,7 @@ if (typeof IS_MINIFIED !== "undefined") {
         // each of its element. We distinguish the start of an array with 'as'
         // or arraystart. This would help distinguish between the arguments
         // (number, number, number) and (number, [number, number])
-        obj = obj["as"] || (obj["as"] = {});
+        obj = obj['as'] || (obj['as'] = {});
         for (let j = 0, lenA = value.length; j < lenA; ++j) {
           obj = addType(value[j], obj, func);
         }
@@ -200,19 +200,19 @@ if (typeof IS_MINIFIED !== "undefined") {
    * @method lookupParamDoc
    * @private
    */
-  const lookupParamDoc = (func) => {
+  const lookupParamDoc = func => {
     // look for the docs in the `data.json` datastructure
 
-    const ichDot = func.lastIndexOf(".");
+    const ichDot = func.lastIndexOf('.');
     const funcName = func.slice(ichDot + 1);
-    const funcClass = func.slice(0, ichDot !== -1 ? ichDot : 0) || "p5";
+    const funcClass = func.slice(0, ichDot !== -1 ? ichDot : 0) || 'p5';
 
     const classitems = arrDoc;
     let queryResult = classitems[funcClass][funcName];
 
     // different JSON structure for funct with multi-format
     const overloads = [];
-    if (queryResult.hasOwnProperty("overloads")) {
+    if (queryResult.hasOwnProperty('overloads')) {
       // add all the overloads
       for (let i = 0; i < queryResult.overloads.length; i++) {
         overloads.push({ formats: queryResult.overloads[i].params });
@@ -225,7 +225,7 @@ if (typeof IS_MINIFIED !== "undefined") {
     // parse the parameter types for each overload
     const mapConstants = {};
     let maxParams = 0;
-    overloads.forEach((overload) => {
+    overloads.forEach(overload => {
       const formats = overload.formats;
 
       // keep a record of the maximum number of arguments
@@ -243,21 +243,21 @@ if (typeof IS_MINIFIED !== "undefined") {
       overload.minParams = minParams;
 
       // loop through each parameter position, and parse its types
-      formats.forEach((format) => {
+      formats.forEach(format => {
         // split this parameter's types
-        format.types = format.type.split("|").map(function ct(type) {
+        format.types = format.type.split('|').map(function ct(type) {
           // array
-          if (type.slice(-2) === "[]") {
+          if (type.slice(-2) === '[]') {
             return {
               name: type,
-              array: ct(type.slice(0, -2)),
+              array: ct(type.slice(0, -2))
             };
           }
 
           let lowerType = type.toLowerCase();
 
           // constant
-          if (lowerType === "constant") {
+          if (lowerType === 'constant') {
             let constant;
             if (mapConstants.hasOwnProperty(format.name)) {
               constant = mapConstants[format.name];
@@ -269,13 +269,13 @@ if (typeof IS_MINIFIED !== "undefined") {
 
               constant = mapConstants[format.name] = {
                 values,
-                names,
+                names
               };
 
               const myArray = myRe.exec(format.description);
-              if (func === "endShape" && format.name === "mode") {
+              if (func === 'endShape' && format.name === 'mode') {
                 values[constants.CLOSE] = true;
-                names.push("CLOSE");
+                names.push('CLOSE');
               } else {
                 const match = myArray[0];
                 const reConst = /[A-Z0-9_]+/g;
@@ -293,13 +293,13 @@ if (typeof IS_MINIFIED !== "undefined") {
               name: type,
               builtin: lowerType,
               names: constant.names,
-              values: constant.values,
+              values: constant.values
             };
           }
 
           // function
-          if (lowerType.slice(0, "function".length) === "function") {
-            lowerType = "function";
+          if (lowerType.slice(0, 'function'.length) === 'function') {
+            lowerType = 'function';
           }
           // builtin
           if (builtinTypes.has(lowerType)) {
@@ -308,15 +308,15 @@ if (typeof IS_MINIFIED !== "undefined") {
 
           // find type's prototype
           let t = window;
-          const typeParts = type.split(".");
+          const typeParts = type.split('.');
 
           // special-case 'p5' since it may be non-global
-          if (typeParts[0] === "p5") {
+          if (typeParts[0] === 'p5') {
             t = p5;
             typeParts.shift();
           }
 
-          typeParts.forEach((p) => {
+          typeParts.forEach(p => {
             t = t && t[p];
           });
           if (t) {
@@ -329,7 +329,7 @@ if (typeof IS_MINIFIED !== "undefined") {
     });
     return {
       overloads,
-      maxParams,
+      maxParams
     };
   };
 
@@ -341,12 +341,12 @@ if (typeof IS_MINIFIED !== "undefined") {
    *
    * @returns {Boolean} a boolean indicating whether input type is Number
    */
-  const isNumber = (param) => {
+  const isNumber = param => {
     if (isNaN(parseFloat(param))) return false;
     switch (typeof param) {
-      case "number":
+      case 'number':
         return true;
-      case "string":
+      case 'string':
         return !isNaN(param);
       default:
         return false;
@@ -370,29 +370,29 @@ if (typeof IS_MINIFIED !== "undefined") {
       matches = param instanceof type.prototype;
     } else if (type.builtin) {
       switch (type.builtin) {
-        case "number":
+        case 'number':
           matches = isNumber(param);
           break;
-        case "integer":
+        case 'integer':
           matches = isNumber(param) && Number(param) === Math.floor(param);
           break;
-        case "boolean":
-        case "any":
+        case 'boolean':
+        case 'any':
           matches = true;
           break;
-        case "array":
+        case 'array':
           matches = isArray;
           break;
-        case "string":
-          matches = /*typeof param === 'number' ||*/ typeof param === "string";
+        case 'string':
+          matches = /*typeof param === 'number' ||*/ typeof param === 'string';
           break;
-        case "constant":
+        case 'constant':
           matches = type.values.hasOwnProperty(param);
           break;
-        case "function":
+        case 'function':
           matches = param instanceof Function;
           break;
-        case "null":
+        case 'null':
           matches = param === null;
           break;
       }
@@ -466,18 +466,18 @@ if (typeof IS_MINIFIED !== "undefined") {
     if (argCount < minParams) {
       return [
         {
-          type: "TOO_FEW_ARGUMENTS",
+          type: 'TOO_FEW_ARGUMENTS',
           argCount,
-          minParams,
-        },
+          minParams
+        }
       ];
     } else if (argCount > formats.length) {
       return [
         {
-          type: "TOO_MANY_ARGUMENTS",
+          type: 'TOO_MANY_ARGUMENTS',
           argCount,
-          maxParams: formats.length,
-        },
+          maxParams: formats.length
+        }
       ];
     }
 
@@ -490,17 +490,17 @@ if (typeof IS_MINIFIED !== "undefined") {
         // handle undefined args
         if (!format.optional || p < minParams || p < argCount) {
           errorArray.push({
-            type: "EMPTY_VAR",
+            type: 'EMPTY_VAR',
             position: p,
-            format,
+            format
           });
         }
       } else if (testParamTypes(arg, format.types) > 0) {
         errorArray.push({
-          type: "WRONG_TYPE",
+          type: 'WRONG_TYPE',
           position: p,
           format,
-          arg,
+          arg
         });
       }
     }
@@ -514,21 +514,21 @@ if (typeof IS_MINIFIED !== "undefined") {
    * @method ValidationError
    * @private
    */
-  p5.ValidationError = ((name) => {
+  p5.ValidationError = (name => {
     class err extends Error {
       constructor(message, func, type) {
         super();
         this.message = message;
         this.func = func;
         this.type = type;
-        if ("captureStackTrace" in Error) Error.captureStackTrace(this, err);
+        if ('captureStackTrace' in Error) Error.captureStackTrace(this, err);
         else this.stack = new Error().stack;
       }
     }
 
     err.prototype.name = name;
     return err;
-  })("ValidationError");
+  })('ValidationError');
 
   /**
    * Prints a friendly msg after parameter validation
@@ -542,12 +542,12 @@ if (typeof IS_MINIFIED !== "undefined") {
     function formatType() {
       const format = errorObj.format;
       return format.types
-        .map((type) => (type.names ? type.names.join("|") : type.name))
-        .join("|");
+        .map(type => (type.names ? type.names.join('|') : type.name))
+        .join('|');
     }
 
     switch (errorObj.type) {
-      case "EMPTY_VAR": {
+      case 'EMPTY_VAR': {
         translationObj = {
           func,
           formatType: formatType(),
@@ -555,55 +555,55 @@ if (typeof IS_MINIFIED !== "undefined") {
           // specifies the values that the context can take so that it can
           // statically prepare the translation files with them.
           /* i18next-extract-mark-context-next-line ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"] */
-          position: translator("fes.positions.p", {
+          position: translator('fes.positions.p', {
             context: (errorObj.position + 1).toString(),
-            defaultValue: (errorObj.position + 1).toString(),
+            defaultValue: (errorObj.position + 1).toString()
           }),
-          url: "https://p5js.org/examples/data-variable-scope.html",
+          url: 'https://p5js.org/examples/data-variable-scope.html'
         };
 
         break;
       }
-      case "WRONG_TYPE": {
+      case 'WRONG_TYPE': {
         const arg = errorObj.arg;
         const argType =
           arg instanceof Array
-            ? "array"
+            ? 'array'
             : arg === null
-            ? "null"
-            : arg === undefined
-            ? "undefined"
-            : typeof arg === "number" && isNaN(arg)
-            ? "NaN"
-            : arg.name || typeof arg;
+              ? 'null'
+              : arg === undefined
+                ? 'undefined'
+                : typeof arg === 'number' && isNaN(arg)
+                  ? 'NaN'
+                  : arg.name || typeof arg;
 
         translationObj = {
           func,
           formatType: formatType(),
           argType,
           /* i18next-extract-mark-context-next-line ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"] */
-          position: translator("fes.positions.p", {
+          position: translator('fes.positions.p', {
             context: (errorObj.position + 1).toString(),
-            defaultValue: (errorObj.position + 1).toString(),
-          }),
+            defaultValue: (errorObj.position + 1).toString()
+          })
         };
 
         break;
       }
-      case "TOO_FEW_ARGUMENTS": {
+      case 'TOO_FEW_ARGUMENTS': {
         translationObj = {
           func,
           minParams: errorObj.minParams,
-          argCount: errorObj.argCount,
+          argCount: errorObj.argCount
         };
 
         break;
       }
-      case "TOO_MANY_ARGUMENTS": {
+      case 'TOO_MANY_ARGUMENTS': {
         translationObj = {
           func,
           maxParams: errorObj.maxParams,
-          argCount: errorObj.argCount,
+          argCount: errorObj.argCount
         };
 
         break;
@@ -618,8 +618,8 @@ if (typeof IS_MINIFIED !== "undefined") {
         if (
           parsed[3] &&
           parsed[3].functionName &&
-          parsed[3].functionName.includes(".") &&
-          p5.prototype[parsed[3].functionName.split(".").slice(-1)[0]]
+          parsed[3].functionName.includes('.') &&
+          p5.prototype[parsed[3].functionName.split('.').slice(-1)[0]]
         ) {
           return;
         }
@@ -636,11 +636,11 @@ if (typeof IS_MINIFIED !== "undefined") {
         ) {
           let location = `${parsed[3].fileName}:${parsed[3].lineNumber}:${parsed[3].columnNumber}`;
 
-          translationObj.location = translator("fes.location", {
+          translationObj.location = translator('fes.location', {
             location,
             // for e.g. get "sketch.js" from "https://example.com/abc/sketch.js"
-            file: parsed[3].fileName.split("/").slice(-1),
-            line: parsed[3].lineNumber,
+            file: parsed[3].fileName.split('/').slice(-1),
+            line: parsed[3].lineNumber
           });
 
           // tell fesErrorMonitor that we have already given a friendly message
@@ -655,7 +655,7 @@ if (typeof IS_MINIFIED !== "undefined") {
 
       translationObj.context = errorObj.type;
       // i18next-extract-mark-context-next-line ["EMPTY_VAR", "TOO_MANY_ARGUMENTS", "TOO_FEW_ARGUMENTS", "WRONG_TYPE"]
-      message = translator("fes.friendlyParamError.type", translationObj);
+      message = translator('fes.friendlyParamError.type', translationObj);
 
       p5._friendlyError(`${message}`, func, 3);
     }
